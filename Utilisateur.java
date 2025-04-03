@@ -1,3 +1,6 @@
+/**
+ * debut du projet github
+ */
 abstract class Utilisateur {
     protected String id;
     protected String motDePasse;
