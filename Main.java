@@ -20,6 +20,15 @@ public class Main {
 
         // Affichage du total de la commande
         System.out.println("Total de la commande: " + commande.calculerTotal() + " €");
+
+                //Test connexion BDD
+        try {
+            var connexion = ConnexionBD.getConnexion();
+            System.out.println("✅ Connexion réussie à la base de données !");
+            connexion.close();
+        } catch (Exception e) {
+            System.err.println("❌ Erreur de connexion : " + e.getMessage());
+        }
     }
 }
 
