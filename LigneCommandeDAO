@@ -1,0 +1,124 @@
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
+public class LigneCommandeDAO {
+
+    public static boolean ajouterLigne(int idCommande, int idArticle, int quantite) {
+        try (Connection conn = ConnexionBD.getConnexion()) {
+            // Vérifie si la ligne existe déjà
+            String checkSql = "SELECT quantite FROM ligne_commande WHERE id_commande = ? AND id_article = ?";
+            PreparedStatement checkStmt = conn.prepareStatement(checkSql);
+            checkStmt.setInt(1, idCommande);
+            checkStmt.setInt(2, idArticle);
+            ResultSet rs = checkStmt.executeQuery();
+
+            if (rs.next()) {
+                // Si la ligne existe, on met à jour la quantité
+                int ancienneQuantite = rs.getInt("quantite");
+                int nouvelleQuantite = ancienneQuantite + quantite;
+
+                String updateSql = "UPDATE ligne_commande SET quantite = ? WHERE id_commande = ? AND id_article = ?";
+                PreparedStatement updateStmt = conn.prepareStatement(updateSql);
+                updateStmt.setInt(1, nouvelleQuantite);
+                updateStmt.setInt(2, idCommande);
+                updateStmt.setInt(3, idArticle);
+                updateStmt.executeUpdate();
+            } else {
+                // Sinon, on insère une nouvelle ligne
+                String insertSql = "INSERT INTO ligne_commande (id_commande, id_article, quantite) VALUES (?, ?, ?)";
+                PreparedStatement insertStmt = conn.prepareStatement(insertSql);
+                insertStmt.setInt(1, idCommande);
+                insertStmt.setInt(2, idArticle);
+                insertStmt.setInt(3, quantite);
+                insertStmt.executeUpdate();
+            }
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public static List<LigneCommande> getLignesCommandeEnCours(int idClient) {
+        List<LigneCommande> lignes = new ArrayList<>();
+        int idCommande = CommandeDAO.getCommandeEnCoursId(idClient); // récupère l'ID de commande en cours
+
+        if (idCommande == -1) return lignes;
+
+        try (Connection conn = ConnexionBD.getConnexion()) {
+            String sql = "SELECT * FROM ligne_commande WHERE id_commande = ?";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, idCommande);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                LigneCommande l = new LigneCommande(
+                        rs.getInt("id_commande"),
+                        rs.getInt("id_article"),
+                        rs.getInt("quantite")
+                );
+                lignes.add(l);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return lignes;
+    }
+
+    public static boolean supprimerLigne(int idCommande, int idArticle) {
+        try (Connection conn = ConnexionBD.getConnexion()) {
+            String sql = "DELETE FROM ligne_commande WHERE id_commande = ? AND id_article = ?";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, idCommande);
+            ps.setInt(2, idArticle);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public static boolean modifierQuantite(int idCommande, int idArticle, int nouvelleQuantite) {
+        try (Connection conn = ConnexionBD.getConnexion()) {
+            String sql = "UPDATE ligne_commande SET quantite = ? WHERE id_commande = ? AND id_article = ?";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, nouvelleQuantite);
+            ps.setInt(2, idCommande);
+            ps.setInt(3, idArticle);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public static List<LigneCommande> getLignesCommandeParCommande(int idCommande) {
+        List<LigneCommande> lignes = new ArrayList<>();
+
+        try (Connection conn = ConnexionBD.getConnexion()) {
+            String sql = "SELECT * FROM ligne_commande WHERE id_commande = ?";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, idCommande);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                lignes.add(new LigneCommande(
+                        rs.getInt("id_commande"),
+                        rs.getInt("id_article"),
+                        rs.getInt("quantite")
+                ));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return lignes;
+    }
+
+
+}
