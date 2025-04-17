@@ -1,0 +1,50 @@
+import javax.swing.JButton;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellEditor;
+import javax.swing.DefaultCellEditor;
+import javax.swing.JCheckBox;
+import javax.swing.JOptionPane;
+
+import java.awt.Component;
+import java.awt.event.ActionEvent;
+
+class ButtonEditor extends DefaultCellEditor {
+    private JButton button;
+    private boolean clicked;
+    private Client client;
+    private JTable table;
+
+    public ButtonEditor(JCheckBox checkBox, Client client, DefaultTableModel model) {
+        super(checkBox);
+        this.client = client;
+        this.button = new JButton("Ajouter");
+        this.button.addActionListener(e -> {
+            int row = table.getSelectedRow();
+            int idArticle = (int) table.getValueAt(row, 0);
+            int quantite = (int) table.getValueAt(row, 8);
+
+            boolean ok = PanierDAO.ajouterAuPanier(client, idArticle, quantite);
+            if (ok) {
+                JOptionPane.showMessageDialog(button, "Ajouté au panier !");
+            } else {
+                JOptionPane.showMessageDialog(button, "Erreur lors de l'ajout !");
+            }
+        });
+    }
+
+    public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected,
+                                                 int row, int column) {
+        this.table = table;
+        return button;
+    }
+
+    public Object getCellEditorValue() {
+        return "Ajouter";
+    }
+
+    public boolean stopCellEditing() {
+        clicked = false;
+        return super.stopCellEditing();
+    }
+}
