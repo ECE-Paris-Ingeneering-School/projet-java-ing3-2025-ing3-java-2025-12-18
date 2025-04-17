@@ -1,0 +1,84 @@
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+    public class ArticleDAO {
+
+        public static List<Article> getAllArticles() {
+            List<Article> articles = new ArrayList<>();
+            try (Connection conn = ConnexionBD.getConnexion()) {
+                String sql = "SELECT * FROM article";
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();
+
+                while (rs.next()) {
+                    Article a = new Article(
+                            rs.getInt("idArticle"),
+                            rs.getString("nomArticle"),
+                            rs.getString("description"),
+                            rs.getDouble("prixUnitaire"),
+                            rs.getDouble("prixVrac"),
+                            rs.getInt("qteVrac"),
+                            rs.getInt("stock"),
+                            rs.getInt("idMarque")
+                    );
+                    articles.add(a);
+                }
+
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+            }
+            return articles;
+        }
+
+        public static void addArticle(Article article) {
+            try (Connection conn = ConnexionBD.getConnexion()) {
+                String sql = "INSERT INTO article (idArticle, nomArticle, description, prixUnitaire, prixVrac, qteVrac, stock, idMarque) VALUES (?, ?, ?, ?, ?, ?, ?)";
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ps.setString(1, article.getNomArticle());
+                ps.setString(2, article.getDescription());
+                ps.setDouble(3, article.getPrixUnitaire());
+                ps.setDouble(4, article.getPrixVrac());
+                ps.setInt(5, article.getQuantiteVrac());
+                ps.setInt(6, article.getStock());
+                ps.setInt(7, article.getIdMarque()); // attention, il doit exister
+
+                ps.executeUpdate();
+                System.out.println("✅ Article ajouté à la base de données !");
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public static Article getArticleById(int idArticle) {
+            Article article = null;
+
+            try (Connection conn = ConnexionBD.getConnexion()) {
+                String sql = "SELECT * FROM article WHERE idarticle = ?";
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ps.setInt(1, idArticle);
+                ResultSet rs = ps.executeQuery();
+
+                if (rs.next()) {
+                    article = new Article(
+                            rs.getInt("idArticle"),
+                            rs.getString("nomArticle"),
+                            rs.getString("description"),
+                            rs.getDouble("prixUnitaire"),
+                            rs.getDouble("prixVrac"),
+                            rs.getInt("qteVrac"),              // ← nom correct
+                            rs.getInt("stock"),
+                            rs.getInt("idMarque")
+                    );
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return article;
+        }
+
+        // Tu pourras ensuite ajouter : addArticle, updateArticle, deleteArticle, etc.
+    }
+
+
