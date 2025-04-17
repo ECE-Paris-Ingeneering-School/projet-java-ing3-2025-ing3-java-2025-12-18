@@ -1,0 +1,131 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.List;
+
+public class FenetrePaiement extends JFrame {
+
+    private Client client;
+    private double totalHT;
+    private double fraisLivraison = 5.00;
+    private double tva = 0.20;
+
+    public FenetrePaiement(Client client, double totalHT) {
+        this.client = client;
+        this.totalHT = totalHT;
+
+        setTitle("Paiement de la commande");
+        setSize(500, 500);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(Color.WHITE);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+
+        // Titre
+        JLabel titre = new JLabel("Paiement de la commande", SwingConstants.CENTER);
+        titre.setFont(new Font("Arial", Font.BOLD, 20));
+        gbc.gridwidth = 2;
+        panel.add(titre, gbc);
+
+        // Client
+        gbc.gridy++;
+        gbc.gridwidth = 1;
+        panel.add(new JLabel("Nom du client :"), gbc);
+        gbc.gridx = 1;
+        panel.add(new JLabel(client.getNom() + " " + client.getPrenom()), gbc);
+
+        // Adresse de livraison
+        gbc.gridx = 0;
+        gbc.gridy++;
+        panel.add(new JLabel("Adresse de livraison :"), gbc);
+        gbc.gridx = 1;
+        JTextField adresseField = new JTextField(20);
+        panel.add(adresseField, gbc);
+
+        // Mode de paiement
+        gbc.gridx = 0;
+        gbc.gridy++;
+        panel.add(new JLabel("Mode de paiement :"), gbc);
+        gbc.gridx = 1;
+        JComboBox<String> paiementBox = new JComboBox<>(new String[]{"Carte bancaire", "PayPal", "Apple Pay", "Google Pay"});
+        panel.add(paiementBox, gbc);
+
+        // Détail paiement
+        gbc.gridx = 0;
+        gbc.gridy++;
+        gbc.gridwidth = 2;
+        double totalTVA = totalHT * tva;
+        double totalTTC = totalHT + totalTVA + fraisLivraison;
+        JTextArea detail = new JTextArea(
+                "Détail du paiement :\n" +
+                        "------------------------\n" +
+                        "Total HT : " + String.format("%.2f €", totalHT) + "\n" +
+                        "TVA (20%) : " + String.format("%.2f €", totalTVA) + "\n" +
+                        "Frais de port : " + String.format("%.2f €", fraisLivraison) + "\n" +
+                        "------------------------\n" +
+                        "Total TTC : " + String.format("%.2f €", totalTTC)
+        );
+        detail.setEditable(false);
+        detail.setBackground(new Color(240, 240, 240));
+        panel.add(detail, gbc);
+
+        // Bouton paiement
+        gbc.gridy++;
+        JButton valider = new JButton("Valider le paiement");
+        valider.setBackground(Color.GREEN);
+        valider.setForeground(Color.WHITE);
+        valider.setFont(new Font("Arial", Font.BOLD, 16));
+        panel.add(valider, gbc);
+
+        // Action sur le bouton
+        valider.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String adresse = adresseField.getText();
+                String modePaiement = (String) paiementBox.getSelectedItem();
+
+                if (adresse.isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "Veuillez entrer une adresse de livraison.");
+                    return;
+                }
+
+                // Affichage de confirmation
+                JOptionPane.showMessageDialog(null,
+                        "Paiement validé !\nAdresse : " + adresse + "\nMode de paiement : " + modePaiement,
+                        "Confirmation", JOptionPane.INFORMATION_MESSAGE);
+
+                int idCommande = CommandeDAO.getCommandeEnCoursId(client.getIdUtilisateur());
+
+                if (idCommande != -1) {
+                    // ✅ Valider la commande
+                    CommandeDAO.validerCommande(idCommande);
+
+                    // ✅ Supprimer chaque ligne du panier
+                    List<LigneCommande> lignes = LigneCommandeDAO.getLignesCommandeEnCours(client.getIdUtilisateur());
+                    for (LigneCommande ligne : lignes) {
+                        LigneCommandeDAO.supprimerLigne(idCommande, ligne.getIdArticle());
+                    }
+                }
+
+                JFrame fenetreCommandes = new JFrame("Mes commandes");
+                fenetreCommandes.setContentPane(new FenetreCommande(client));
+                fenetreCommandes.setSize(800, 600);
+                fenetreCommandes.setLocationRelativeTo(null);
+                fenetreCommandes.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                fenetreCommandes.setVisible(true);
+
+                dispose();
+            }
+        });
+
+        add(panel);
+        setVisible(true);
+    }
+}
