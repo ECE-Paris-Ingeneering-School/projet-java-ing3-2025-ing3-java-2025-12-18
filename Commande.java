@@ -1,24 +1,41 @@
-import java.util.Map;
-import java.util.HashMap;
+import java.sql.Timestamp;
 
 public class Commande {
-    private Client client;
-    private Map<Article, Integer> articles;
+    private int idCommande;
+    private String idClient;
+    private Timestamp dateCommande;
+    private String statut;
 
-    public Commande(Client client) {
-        this.client = client;
-        this.articles = new HashMap<>();
+    public Commande(int idCommande, String idClient, Timestamp dateCommande, String statut) {
+        this.idCommande = idCommande;
+        this.idClient = idClient;
+        this.dateCommande = dateCommande;
+        this.statut = statut;
     }
 
-    public void ajouterArticle(Article article, int quantite) {
-        articles.put(article, quantite);
+
+    public int getIdCommande() {
+        return idCommande;
     }
 
-    public double calculerTotal() {
-        double total = 0;
-        for (Map.Entry<Article, Integer> entry : articles.entrySet()) {
-            total += entry.getKey().calculerPrix(entry.getValue());
-        }
-        return total;
+    public String getIdClient() {
+        return idClient;
+    }
+
+
+    public Timestamp getDateCommande() {
+        return dateCommande;
+    }
+
+    public void setDateCommande(Timestamp dateCommande) {
+        this.dateCommande = dateCommande;
+    }
+
+    public String getStatut() {
+        return statut;
+    }
+
+    public void setStatut(String statut) {
+        this.statut = statut;
     }
 }
