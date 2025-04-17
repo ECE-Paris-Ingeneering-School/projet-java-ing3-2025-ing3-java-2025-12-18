@@ -1,0 +1,215 @@
+/*
+import javax.swing.*;
+import java.awt.*;
+import java.util.List;
+
+public class FenetreArticles extends JPanel {
+    private Client client;
+
+    public FenetreArticles(Client client) {
+        this.client = client;
+
+        setTitle("Articles disponibles");
+        setSize(700, 600);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setLayout(new BorderLayout());
+
+        JPanel panelArticles = new JPanel();
+        panelArticles.setLayout(new BoxLayout(panelArticles, BoxLayout.Y_AXIS));
+
+        List<Article> articles = ArticleDAO.getAllArticles();
+        for (Article article : articles) {
+            panelArticles.add(creerPanelArticle(article));
+        }
+
+        JScrollPane scrollPane = new JScrollPane(panelArticles);
+        add(scrollPane, BorderLayout.CENTER);
+
+        setVisible(true);
+    }
+
+    private JPanel creerPanelArticle(Article article) {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        panel.setBorder(BorderFactory.createTitledBorder(article.getNomArticle()));
+
+        JLabel lblDesc = new JLabel("Description: " + article.getDescription());
+        JLabel lblPrix = new JLabel(" | Prix: " + article.getPrixUnitaire() + "€");
+        JTextField txtQuantite = new JTextField("1", 5);
+        JButton btnAjouter = new JButton("Ajouter au panier");
+
+        panel.add(lblDesc);
+        panel.add(lblPrix);
+        panel.add(new JLabel("Quantité:"));
+        panel.add(txtQuantite);
+        panel.add(btnAjouter);
+
+        // Action du bouton
+        btnAjouter.addActionListener(e -> {
+            try {
+                int quantite = Integer.parseInt(txtQuantite.getText());
+                if (quantite <= 0) throw new NumberFormatException();
+
+                boolean ok = PanierDAO.ajouterAuPanier(client, article.getIdArticle(), quantite);
+                if (ok) {
+                    JOptionPane.showMessageDialog(this, "✅ Article ajouté au panier !");
+                } else {
+                    JOptionPane.showMessageDialog(this, "❌ Erreur lors de l'ajout au panier.");
+                }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Veuillez entrer une quantité valide.");
+            }
+        });
+
+        return panel;
+    }
+}
+*/
+/*import javax.swing.*;
+import java.awt.*;
+import java.util.List;
+
+public class FenetreArticles extends JPanel {
+
+    public FenetreArticles(Client client) {
+        setLayout(new BorderLayout());
+
+        JPanel panelListe = new JPanel();
+        panelListe.setLayout(new BoxLayout(panelListe, BoxLayout.Y_AXIS));
+
+        JScrollPane scrollPane = new JScrollPane(panelListe);
+        add(scrollPane, BorderLayout.CENTER);
+
+        // Charger les articles
+        List<Article> articles = ArticleDAO.getAllArticles();
+
+        for (Article article : articles) {
+            JPanel panelArticle = new JPanel(new GridLayout(0, 1));
+            panelArticle.setBorder(BorderFactory.createTitledBorder("Article ID: " + article.getIdArticle()));
+
+            JLabel lblNom = new JLabel("Nom : " + article.getNomArticle());
+            JLabel lblDesc = new JLabel("Description : " + article.getDescription());
+            JLabel lblPrix = new JLabel("Prix unitaire : " + article.getPrixUnitaire() + " €");
+            JLabel lblStock = new JLabel("Stock disponible : " + article.getStock());
+
+            JPanel panelBas = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            JLabel lblQte = new JLabel("Quantité : ");
+            JSpinner spinner = new JSpinner(new SpinnerNumberModel(1, 1, article.getStock(), 1));
+            JButton btnAjouter = new JButton("Ajouter au panier");
+
+            btnAjouter.addActionListener(e -> {
+                int qte = (int) spinner.getValue();
+                boolean ok = PanierDAO.ajouterAuPanier(client, article.getIdArticle(), qte);
+                if (ok) {
+                    JOptionPane.showMessageDialog(this, "Article ajouté au panier !");
+                } else {
+                    JOptionPane.showMessageDialog(this, "Erreur lors de l'ajout.", "Erreur", JOptionPane.ERROR_MESSAGE);
+                }
+            });
+            JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            JButton btnVoirPanier = new JButton("Voir le panier");
+            topPanel.add(btnVoirPanier);
+            this.add(topPanel, BorderLayout.NORTH); // ← "this.add" dans un JPanel
+
+            btnVoirPanier.addActionListener(e -> {
+                JFrame panierFrame = new JFrame("Mon Panier");
+                panierFrame.setContentPane(new FenetrePanier(client)); // ← à créer
+                panierFrame.setSize(700, 400);
+                panierFrame.setLocationRelativeTo(null);
+                panierFrame.setVisible(true);
+            });
+            add(btnVoirPanier, BorderLayout.NORTH); // ou SOUTH, selon la place
+
+            panelBas.add(lblQte);
+            panelBas.add(spinner);
+            panelBas.add(btnAjouter);
+
+            panelArticle.add(lblNom);
+            panelArticle.add(lblDesc);
+            panelArticle.add(lblPrix);
+            panelArticle.add(lblStock);
+            panelArticle.add(panelBas);
+
+            panelListe.add(panelArticle);
+        }
+    }
+}*/
+import javax.swing.*;
+import java.awt.*;
+import java.util.List;
+
+public class FenetreArticles extends JPanel {
+
+    private Utilisateur utilisateur;
+
+    public FenetreArticles(Client client) {
+        this.utilisateur = utilisateur;
+        setLayout(new BorderLayout());
+
+        JPanel panelListe = new JPanel();
+        panelListe.setLayout(new BoxLayout(panelListe, BoxLayout.Y_AXIS));
+
+        JScrollPane scrollPane = new JScrollPane(panelListe);
+        this.add(scrollPane, BorderLayout.CENTER);
+
+        // Bouton "Voir le panier"
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton btnVoirPanier = new JButton("Voir le panier");
+
+        // Le bouton est activé seulement si le client est connecté
+        btnVoirPanier.setEnabled(client != null);
+        btnVoirPanier.addActionListener(e -> {
+            if (client != null) {
+                JFrame panierFrame = new JFrame("Mon Panier");
+                panierFrame.setContentPane(new FenetrePanier(client)); // si ça existe
+                panierFrame.setSize(600, 400);
+                panierFrame.setLocationRelativeTo(null);
+                panierFrame.setVisible(true);
+            }
+        });
+
+        topPanel.add(btnVoirPanier);
+        this.add(topPanel, BorderLayout.NORTH);
+
+        // Charger les articles
+        List<Article> articles = ArticleDAO.getAllArticles();
+
+        for (Article article : articles) {
+            JPanel panelArticle = new JPanel(new GridLayout(0, 1));
+            panelArticle.setBorder(BorderFactory.createTitledBorder(article.getNomArticle()));
+
+            JLabel lblDesc = new JLabel("Description : " + article.getDescription());
+            JLabel lblPrix = new JLabel("Prix : " + article.getPrixUnitaire() + " €");
+            JLabel lblStock = new JLabel("Stock : " + article.getStock());
+
+            panelArticle.add(lblDesc);
+            panelArticle.add(lblPrix);
+            panelArticle.add(lblStock);
+
+            // Ajouter au panier seulement si client connecté
+            if (client != null) {
+                JPanel panelBas = new JPanel(new FlowLayout(FlowLayout.LEFT));
+                JLabel lblQte = new JLabel("Quantité : ");
+                JSpinner spinner = new JSpinner(new SpinnerNumberModel(1, 1, article.getStock(), 1));
+                JButton btnAjouter = new JButton("Ajouter au panier");
+
+                btnAjouter.addActionListener(e -> {
+                    int qte = (int) spinner.getValue();
+                    boolean ok = PanierDAO.ajouterAuPanier(client, article.getIdArticle(), qte);
+                    if (ok) {
+                        JOptionPane.showMessageDialog(this, "✅ Article ajouté !");
+                    } else {
+                        JOptionPane.showMessageDialog(this, "❌ Erreur d'ajout.");
+                    }
+                });
+
+                panelBas.add(lblQte);
+                panelBas.add(spinner);
+                panelBas.add(btnAjouter);
+                panelArticle.add(panelBas);
+            }
+
+            panelListe.add(panelArticle);
+        }
+    }
+}
