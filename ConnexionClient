@@ -1,0 +1,104 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+public class ConnexionClient extends JFrame {
+    private Accueil accueil;
+    private JTextField emailField;
+    private JPasswordField passwordField;
+
+    public ConnexionClient() {
+        setTitle("Connexion Client");
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setSize(400, 300);
+        setLocationRelativeTo(null);
+
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(Color.WHITE);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 10, 8, 10); // marges entre les composants
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        // Titre
+        JLabel title = new JLabel("Connexion au compte client");
+        title.setFont(new Font("Arial", Font.BOLD, 18));
+        title.setHorizontalAlignment(SwingConstants.CENTER);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        panel.add(title, gbc);
+
+        // Email
+        gbc.gridwidth = 1;
+        gbc.gridy++;
+        panel.add(new JLabel("Email : "), gbc);
+
+        gbc.gridx = 1;
+        emailField = new JTextField(20);
+        panel.add(emailField, gbc);
+
+        // Mot de passe
+        gbc.gridx = 0;
+        gbc.gridy++;
+        panel.add(new JLabel("Mot de passe : "), gbc);
+
+        gbc.gridx = 1;
+        passwordField = new JPasswordField(20);
+        panel.add(passwordField, gbc);
+
+        // Bouton Connexion
+        gbc.gridx = 0;
+        gbc.gridy++;
+        JButton loginButton = new JButton("Se connecter");
+        panel.add(loginButton, gbc);
+
+        // Bouton Inscription
+        gbc.gridx = 1;
+        JButton registerButton = new JButton("S'inscrire");
+        panel.add(registerButton, gbc);
+
+        add(panel);
+        setVisible(true);
+
+        // Actions
+        loginButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String email = emailField.getText().trim();
+                String mdp = new String(passwordField.getPassword()).trim();
+
+                if (email.isEmpty() || mdp.isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "Veuillez remplir tous les champs.");
+                    return;
+                }
+
+                Client client = ClientDAO.login(email, mdp);
+                if (client != null) {
+                    JOptionPane.showMessageDialog(null, "✅ Connexion réussie. Bonjour " + client.getPrenom() + " !");
+                    if (accueil != null) {
+                        accueil.setUtilisateurConnecte(client);
+                        dispose(); // ferme la fenêtre de connexion
+                    } else {
+                        new InterfaceClient(client); // cas de test
+                        dispose();
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(null, "❌ Email ou mot de passe incorrect.");
+                }
+            }
+        });
+
+        registerButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                dispose();
+                new InscriptionClient(); // à créer
+            }
+        });
+    }
+
+    public ConnexionClient(Accueil accueil) {
+        this(); // appelle le constructeur principal
+        this.accueil = accueil;
+    }
+
+}
