@@ -1,0 +1,63 @@
+import javax.swing.*;
+import java.awt.*;
+
+public class Accueil extends JFrame {
+    private Utilisateur utilisateurConnecte = null;
+    private JButton btnConnexion;
+    private JButton btnPanier;
+    private JPanel panelArticles;
+
+    public Accueil() {
+        setTitle("Catalogue - Accueil");
+        setSize(1000, 700);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+
+        // Barre du haut
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        btnConnexion = new JButton("Connexion");
+        btnPanier = new JButton("Voir le panier");
+        btnPanier.setEnabled(false);
+
+        topPanel.add(btnConnexion);
+        topPanel.add(btnPanier);
+        add(topPanel, BorderLayout.NORTH);
+
+        // Contenu articles
+        panelArticles = new FenetreArticles(null); // client null = navigation anonyme
+        add(panelArticles, BorderLayout.CENTER);
+
+        btnConnexion.addActionListener(e -> {
+            //dispose();
+            new ConnexionClient(this); // Appel vers ConnexionClient avec callback
+        });
+
+        btnPanier.addActionListener(e -> {
+            if (utilisateurConnecte != null) {
+                JOptionPane.showMessageDialog(this, "🔓 Panier de " + utilisateurConnecte.getPrenom());
+                // Tu peux ici ouvrir FenetrePanier(utilisateurConnecte)
+            }
+        });
+
+        setVisible(true);
+    }
+
+    // Appelée depuis ConnexionClient si connexion réussie
+    public void setUtilisateurConnecte(Client client) {
+        this.utilisateurConnecte = client;
+        btnConnexion.setText("Connecté : " + client.getPrenom());
+        btnConnexion.setEnabled(false);
+        btnPanier.setEnabled(true);
+
+        // Recharger les articles avec client pour activer "Ajouter au panier"
+        getContentPane().remove(panelArticles);
+        panelArticles = new FenetreArticles(client); // maintenant client ≠ null
+        getContentPane().add(panelArticles, BorderLayout.CENTER);
+        revalidate();
+        repaint();
+    }
+
+    public static void main(String[] args) {
+        new Accueil();
+    }
+}
