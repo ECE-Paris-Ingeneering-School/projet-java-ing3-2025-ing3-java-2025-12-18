@@ -1,0 +1,37 @@
+// Classe Panier.java : gère les articles du client en mémoire (panier temporaire)
+import java.util.HashMap;
+import java.util.Map;
+
+public class Panier {
+    private Client client;
+    private Map<Article, Integer> articles;
+
+    public Panier(Client client) {
+        this.client = client;
+        this.articles = new HashMap<>();
+    }
+
+    public void ajouterArticle(Article article, int quantite) {
+        articles.put(article, quantite);
+    }
+
+    public void retirerArticle(Article article) {
+        articles.remove(article);
+    }
+
+    public Map<Article, Integer> getArticles() {
+        return articles;
+    }
+
+    public Client getClient() {
+        return client;
+    }
+
+    public double calculerTotal() {
+        double total = 0;
+        for (Map.Entry<Article, Integer> entry : articles.entrySet()) {
+            total += entry.getKey().calculerPrix(entry.getValue());
+        }
+        return total;
+    }
+}
