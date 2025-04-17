@@ -1,0 +1,38 @@
+import javax.swing.*;
+import java.awt.*;
+
+public class InterfaceClient extends JFrame {
+
+    public InterfaceClient(Client client) {
+        setTitle("Espace Client");
+        setSize(900, 600);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+        // Création du composant à onglets
+        JTabbedPane onglets = new JTabbedPane();
+
+        // Onglet Produits
+        JPanel panelProduits = new FenetreArticles(client);
+        onglets.addTab("Produits", panelProduits);
+
+        // Onglet Panier
+        //JPanel panelPanier = new FenetrePanier(client); // à créer
+        //onglets.addTab("Mon Panier", panelPanier);
+
+        // Onglet Commandes
+        //JPanel panelCommandes = new FenetreHistoriqueCommandes(client); // à créer
+        //onglets.addTab("Mes Commandes", panelCommandes);
+
+        // Ajout des onglets à la fenêtre
+        add(onglets);
+
+        setVisible(true);
+    }
+
+    public static void main(String[] args) {
+        // Exemple de client fictif
+        Client client = new Client(1, "Doe", "John", "john@exemple.com", "mdp");
+        new InterfaceClient(client);
+    }
+}
