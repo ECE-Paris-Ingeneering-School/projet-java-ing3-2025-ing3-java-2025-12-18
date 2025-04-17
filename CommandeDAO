@@ -1,0 +1,90 @@
+import java.sql.*;
+import java.util.*;
+
+public class CommandeDAO {
+
+    //Créer une nouvelle commande pour un client
+    public static int creerCommande(int idClient) {
+        int idCommande = -1;
+
+        try (Connection conn = ConnexionBD.getConnexion()) {
+            String sql = "INSERT INTO commande (id_client) VALUES (?)";
+            PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            ps.setInt(1, idClient);
+            ps.executeUpdate();
+
+            // Récupérer l'ID généré automatiquement
+            ResultSet rs = ps.getGeneratedKeys();
+            if (rs.next()) {
+                idCommande = rs.getInt(1);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return idCommande;
+    }
+
+    // ✅ Récupérer l'ID de la commande "en cours" pour un client
+    public static int getCommandeEnCoursId(int idClient) {
+        int idCommande = -1;
+
+        try (Connection conn = ConnexionBD.getConnexion()) {
+            String sql = "SELECT id_commande FROM commande WHERE id_client = ? AND statut = 'en cours'";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, idClient);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                idCommande = rs.getInt("id_commande");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return idCommande;
+    }
+
+    // ✅ Valider la commande (modifier son statut à "validée")
+    public static void validerCommande(int idCommande) {
+        try (Connection conn = ConnexionBD.getConnexion()) {
+            String sql = "UPDATE commande SET statut = 'terminée' WHERE id_commande = ?";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, idCommande);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // ✅ Lister toutes les commandes d’un client
+    public static List<Commande> getCommandesClient(int idClient) {
+        List<Commande> commandes = new ArrayList<>();
+
+        try (Connection conn = ConnexionBD.getConnexion()) {
+            String sql = "SELECT * FROM commande WHERE id_client = ? ORDER BY date_commande DESC";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, idClient);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                int id = rs.getInt("id_commande");
+                String statut = rs.getString("statut");
+                Timestamp date = rs.getTimestamp("date_commande");
+                Commande c = new Commande(
+                        rs.getInt("id_commande"),
+                        rs.getString("id_client"),
+                        rs.getTimestamp("date_commande"),
+                        rs.getString("statut")
+                );
+                commandes.add(c);            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return commandes;
+    }
+}
