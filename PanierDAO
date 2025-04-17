@@ -1,0 +1,37 @@
+import java.util.List;
+public class PanierDAO {
+
+    public static boolean ajouterAuPanier(Client client, int idArticle, int quantite) {
+        int idClient = client.getIdUtilisateur();
+        int idCommande = CommandeDAO.getCommandeEnCoursId(idClient);
+
+        // Si pas encore de commande en cours   , on en crée une
+        if (idCommande == -1) {
+            idCommande = CommandeDAO.creerCommande(idClient);
+            if (idCommande == -1) return false;
+        }
+
+        return LigneCommandeDAO.ajouterLigne(idCommande, idArticle, quantite);
+    }
+    public static double calculerTotalCommande(int idCommande) {
+        List<LigneCommande> lignes = LigneCommandeDAO.getLignesCommandeParCommande(idCommande);
+        double total = 0;
+        for (LigneCommande l : lignes) {
+            Article a = ArticleDAO.getArticleById(l.getIdArticle());
+            if (a != null) {
+                int qte = l.getQuantite();
+                if (qte >= a.getQuantiteVrac()) {
+                    int lots = qte / a.getQuantiteVrac();
+                    int reste = qte % a.getQuantiteVrac();
+                    total += lots * a.getPrixVrac() + reste * a.getPrixUnitaire();
+                } else {
+                    total += qte * a.getPrixUnitaire();
+                }
+            }
+        }
+        return total;
+    }
+
+
+
+}
