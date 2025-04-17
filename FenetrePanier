@@ -1,0 +1,177 @@
+import javax.swing.*;
+import java.awt.*;
+import java.util.List;
+
+public class FenetrePanier extends JPanel {
+    private Client client;
+    private JPanel panelProduits;
+    private JLabel totalLabel;
+
+    public FenetrePanier(Client client) {
+        this.client = client;
+        setLayout(new BorderLayout());
+
+        // 🔹 Titre de la page
+        JLabel titre = new JLabel("Récapitulatif de la commande");
+        titre.setFont(new Font("Arial", Font.BOLD, 24));
+        titre.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        add(titre, BorderLayout.NORTH);
+
+        // 🔹 Panel principal des produits
+        panelProduits = new JPanel();
+        panelProduits.setLayout(new BoxLayout(panelProduits, BoxLayout.Y_AXIS));
+
+        JScrollPane scrollPane = new JScrollPane(panelProduits);
+        add(scrollPane, BorderLayout.CENTER);
+
+        // 🔹 Pied de page
+        JPanel bas = new JPanel(new BorderLayout());
+
+        JButton retour = new JButton("← Continuer mes achats");
+        retour.addActionListener(e -> {
+            JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
+            topFrame.setContentPane(new InterfaceClient(client));
+            topFrame.revalidate();
+        });
+
+        totalLabel = new JLabel();
+        totalLabel.setFont(new Font("Arial", Font.BOLD, 16));
+
+        JButton commanderBtn = new JButton("Commander");
+        commanderBtn.setBackground(Color.ORANGE);
+        commanderBtn.setForeground(Color.WHITE);
+        commanderBtn.setFont(new Font("Arial", Font.BOLD, 14));
+
+        commanderBtn.addActionListener(e -> {
+            JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
+
+            int idClient = client.getIdUtilisateur();
+            int idCommande = CommandeDAO.getCommandeEnCoursId(idClient);
+
+            if (idCommande != -1) {
+                double totalHT = PanierDAO.calculerTotalCommande(idCommande);
+                new FenetrePaiement(client, totalHT);
+
+
+            } else {
+                JOptionPane.showMessageDialog(this, "Aucune commande en cours trouvée.", "Erreur", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+
+        JPanel totalPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        totalPanel.add(totalLabel);
+
+        JPanel boutonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        boutonPanel.add(commanderBtn);
+
+        JPanel footer = new JPanel(new BorderLayout());
+        footer.add(retour, BorderLayout.WEST);
+        footer.add(totalPanel, BorderLayout.CENTER);
+        footer.add(boutonPanel, BorderLayout.EAST);
+
+        footer.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        add(footer, BorderLayout.SOUTH);
+
+        chargerPanier();
+    }
+
+    private void chargerPanier() {
+        panelProduits.removeAll();
+        List<LigneCommande> lignes = LigneCommandeDAO.getLignesCommandeEnCours(client.getIdUtilisateur());
+
+        double total = 0;
+
+        // 🔹 Entête des colonnes
+        JPanel header = new JPanel(new GridLayout(1, 5));
+        header.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.GRAY));
+        header.add(new JLabel("Produit"));
+        header.add(new JLabel("Prix unitaire"));
+        header.add(new JLabel("Quantité"));
+        header.add(new JLabel("Total"));
+        header.add(new JLabel("")); // colonne vide pour bouton
+        panelProduits.add(header);
+
+        for (LigneCommande l : lignes) {
+            Article a = ArticleDAO.getArticleById(l.getIdArticle());
+            if (a == null) continue;
+
+            int qte = l.getQuantite();
+            double sousTotal;
+
+            // 🔹 Calcul du prix en fonction du vrac
+            if (qte >= a.getQuantiteVrac()) {
+                int lots = qte / a.getQuantiteVrac();
+                int reste = qte % a.getQuantiteVrac();
+                sousTotal = lots * a.getPrixVrac() + reste * a.getPrixUnitaire();
+            } else {
+                sousTotal = qte * a.getPrixUnitaire();
+            }
+            total += sousTotal;
+
+            JPanel lignePanel = new JPanel(new GridLayout(1, 5));
+            lignePanel.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 0, Color.LIGHT_GRAY));
+
+            // 🔹 Image du produit
+            String imagePath = "images/" + a.getNomArticle().toLowerCase() + ".png";
+            ImageIcon icon = new ImageIcon(imagePath);
+            Image img = icon.getImage().getScaledInstance(60, 60, Image.SCALE_SMOOTH);
+            JLabel imageLabel = new JLabel(new ImageIcon(img));
+
+            // 🔹 Nom et description
+            JLabel texte = new JLabel("<html><b>" + a.getNomArticle() + "</b><br>" + a.getDescription() + "</html>");
+            JPanel produitPanel = new JPanel(new BorderLayout());
+            produitPanel.add(imageLabel, BorderLayout.WEST);
+            produitPanel.add(texte, BorderLayout.CENTER);
+
+            // 🔹 Prix unitaire
+            JLabel prix = new JLabel(String.format("%.2f €", a.getPrixUnitaire()));
+
+            // 🔹 Spinner pour modifier la quantité
+            JSpinner spinner = new JSpinner(new SpinnerNumberModel(qte, 1, a.getStock(), 1));
+
+            // 🔹 Prix total
+            JLabel prixTotal = new JLabel(String.format("%.2f €", sousTotal));
+
+            // 🔹 Poubelle
+            JButton supprimer = new JButton();
+            supprimer.setToolTipText("Supprimer");
+            supprimer.setContentAreaFilled(false);
+            supprimer.setBorderPainted(false);
+            supprimer.setFocusPainted(false);
+            try {
+                ImageIcon ic = new ImageIcon("images/trash.png");
+                Image imgPou = ic.getImage().getScaledInstance(24, 24, Image.SCALE_SMOOTH);
+                supprimer.setIcon(new ImageIcon(imgPou));
+            } catch (Exception ex) {
+                supprimer.setText("🗑");
+            }
+
+            supprimer.addActionListener(e -> {
+                LigneCommandeDAO.supprimerLigne(client.getIdUtilisateur(), a.getIdArticle());
+                chargerPanier();
+            });
+
+            spinner.addChangeListener(e -> {
+                int newQte = (int) spinner.getValue();
+                LigneCommandeDAO.modifierQuantite(client.getIdUtilisateur(), a.getIdArticle(), newQte);
+                chargerPanier();
+            });
+
+            lignePanel.add(produitPanel);
+            lignePanel.add(prix);
+            lignePanel.add(spinner);
+            lignePanel.add(prixTotal);
+            lignePanel.add(supprimer);
+
+            panelProduits.add(lignePanel);
+        }
+
+        double fraisPort = 60;
+        totalLabel.setText(String.format("Total : %.2f € + %.2f € de frais de port = %.2f €",
+                total, fraisPort, total + fraisPort));
+
+        revalidate();
+        repaint();
+    }
+}
