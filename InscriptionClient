@@ -1,0 +1,103 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+public class InscriptionClient extends JFrame {
+
+    private JTextField nomField;
+    private JTextField prenomField;
+    private JTextField emailField;
+    private JPasswordField mdpField;
+
+    public InscriptionClient() {
+        setTitle("Inscription Client");
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setSize(400, 350);
+        setLocationRelativeTo(null);
+
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(Color.WHITE);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 10, 8, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        // Titre
+        JLabel title = new JLabel("Créer un compte client");
+        title.setFont(new Font("Arial", Font.BOLD, 18));
+        title.setHorizontalAlignment(SwingConstants.CENTER);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        panel.add(title, gbc);
+
+        // Nom
+        gbc.gridwidth = 1;
+        gbc.gridy++;
+        panel.add(new JLabel("Nom :"), gbc);
+        gbc.gridx = 1;
+        nomField = new JTextField(20);
+        panel.add(nomField, gbc);
+
+        // Prénom
+        gbc.gridx = 0;
+        gbc.gridy++;
+        panel.add(new JLabel("Prénom :"), gbc);
+        gbc.gridx = 1;
+        prenomField = new JTextField(20);
+        panel.add(prenomField, gbc);
+
+        // Email
+        gbc.gridx = 0;
+        gbc.gridy++;
+        panel.add(new JLabel("Email :"), gbc);
+        gbc.gridx = 1;
+        emailField = new JTextField(20);
+        panel.add(emailField, gbc);
+
+        // Mot de passe
+        gbc.gridx = 0;
+        gbc.gridy++;
+        panel.add(new JLabel("Mot de passe :"), gbc);
+        gbc.gridx = 1;
+        mdpField = new JPasswordField(20);
+        panel.add(mdpField, gbc);
+
+        // Bouton inscription
+        gbc.gridx = 0;
+        gbc.gridy++;
+        gbc.gridwidth = 2;
+        JButton registerBtn = new JButton("Créer un compte");
+        panel.add(registerBtn, gbc);
+
+        add(panel);
+        setVisible(true);
+
+        // Action du bouton
+        registerBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String nom = nomField.getText().trim();
+                String prenom = prenomField.getText().trim();
+                String email = emailField.getText().trim();
+                String mdp = new String(mdpField.getPassword()).trim();
+
+                if (nom.isEmpty() || prenom.isEmpty() || email.isEmpty() || mdp.isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "Tous les champs doivent être remplis.");
+                    return;
+                }
+
+                Client nouveauClient = new Client(nom, prenom, email, mdp);
+                boolean success = ClientDAO.inscription(nouveauClient);
+
+                if (success) {
+                    JOptionPane.showMessageDialog(null, "✅ Compte créé avec succès !");
+                    dispose();
+                    new ConnexionClient();
+                } else {
+                    JOptionPane.showMessageDialog(null, "❌ Erreur lors de la création du compte.");
+                }
+            }
+        });
+    }
+}
