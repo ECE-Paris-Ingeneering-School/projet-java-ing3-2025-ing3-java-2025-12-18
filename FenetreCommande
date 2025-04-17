@@ -1,0 +1,123 @@
+import javax.swing.*;
+import java.awt.*;
+import java.util.List;
+
+public class FenetreCommande extends JPanel {
+    private Client client;
+    private JPanel panelCommandes;
+
+    public FenetreCommande(Client client) {
+        this.client = client;
+        setLayout(new BorderLayout());
+/*
+        JLabel nomClientLabel = new JLabel("Client : " + client.getNom() + " " + client.getPrenom());
+        nomClientLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        nomClientLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 0));
+        add(nomClientLabel, BorderLayout.NORTH);
+
+        JLabel titre = new JLabel("Mes commandes");
+        titre.setFont(new Font("Arial", Font.BOLD, 24));
+        titre.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        add(titre, BorderLayout.NORTH);
+
+     */
+        // En haut du constructeur
+        setLayout(new BorderLayout());
+
+// 🔹 Panel en haut contenant le titre + nom du client
+        JPanel headerPanel = new JPanel();
+        headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JLabel titre = new JLabel("🧾 Mes commandes");
+        titre.setFont(new Font("Arial", Font.BOLD, 24));
+
+        JLabel nomClient = new JLabel("👤 Client : " + client.getNom() + " " + client.getPrenom());
+        nomClient.setFont(new Font("Arial", Font.PLAIN, 16));
+
+        headerPanel.add(titre);
+        headerPanel.add(Box.createVerticalStrut(5));
+        headerPanel.add(nomClient);
+
+// ➕ Ajoute tout en haut de la page
+        add(headerPanel, BorderLayout.NORTH);
+
+        panelCommandes = new JPanel();
+        panelCommandes.setLayout(new BoxLayout(panelCommandes, BoxLayout.Y_AXIS));
+
+        JScrollPane scrollPane = new JScrollPane(panelCommandes);
+        add(scrollPane, BorderLayout.CENTER);
+
+        chargerCommandes();
+    }
+
+
+
+    private void chargerCommandes() {
+        panelCommandes.removeAll();
+        List<Commande> commandes = CommandeDAO.getCommandesClient(client.getIdUtilisateur());
+
+        // En-tête
+        JPanel entete = new JPanel(new GridLayout(1, 6));
+        entete.setBackground(Color.LIGHT_GRAY);
+        entete.add(new JLabel("ID Commande", SwingConstants.CENTER));
+        entete.add(new JLabel("Date", SwingConstants.CENTER));
+        entete.add(new JLabel("Statut", SwingConstants.CENTER));
+        entete.add(new JLabel("Articles", SwingConstants.CENTER));
+        entete.add(new JLabel("Total HT", SwingConstants.CENTER));
+        entete.add(new JLabel("Total TTC", SwingConstants.CENTER));
+
+        panelCommandes.add(entete);
+
+        for (Commande c : commandes) {
+            JPanel ligne = new JPanel(new GridLayout(1, 6));
+
+            // ID, Date, Statut
+            JLabel idLabel = new JLabel(String.valueOf(c.getIdCommande()), SwingConstants.CENTER);
+            JLabel dateLabel = new JLabel(c.getDateCommande().toString(), SwingConstants.CENTER);
+            JLabel statutLabel = new JLabel(c.getStatut(), SwingConstants.CENTER);
+
+            // 🧾 Articles
+            List<LigneCommande> lignes = LigneCommandeDAO.getLignesCommandeParCommande(c.getIdCommande());
+            StringBuilder recap = new StringBuilder();
+            for (LigneCommande l : lignes) {
+                Article article = ArticleDAO.getArticleById(l.getIdArticle());
+                if (article != null) {
+                    recap.append(article.getNomArticle())
+                            .append(" x")
+                            .append(l.getQuantite())
+                            .append("\n");
+                }
+            }
+
+            JTextArea recapLabel = new JTextArea(recap.toString());
+            recapLabel.setWrapStyleWord(true);
+            recapLabel.setLineWrap(true);
+            recapLabel.setEditable(false);
+            recapLabel.setOpaque(false);
+
+            // 💰 Totaux
+            double totalHT = PanierDAO.calculerTotalCommande(c.getIdCommande());
+            double tva = totalHT * 0.20;
+            double frais = 5.00;
+            double totalTTC = totalHT + tva + frais;
+
+            JLabel totalHTLabel = new JLabel(String.format("%.2f €", totalHT), SwingConstants.CENTER);
+            JLabel totalTTCLabel = new JLabel(String.format("%.2f €", totalTTC), SwingConstants.CENTER);
+
+            // ➕ Ajout à la ligne
+            ligne.add(idLabel);
+            ligne.add(dateLabel);
+            ligne.add(statutLabel);
+            ligne.add(recapLabel);
+            ligne.add(totalHTLabel);
+            ligne.add(totalTTCLabel);
+
+            panelCommandes.add(ligne);
+        }
+
+
+        revalidate();
+        repaint();
+    }
+}
