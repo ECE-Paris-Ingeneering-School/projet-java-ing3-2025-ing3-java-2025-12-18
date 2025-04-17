@@ -1,0 +1,26 @@
+public class LigneCommande {
+
+
+    private int idCommande;
+    private int idArticle;
+    private int quantite;
+
+    public LigneCommande(int idCommande, int idArticle, int quantite) {
+
+        this.idCommande = idCommande;
+        this.idArticle = idArticle;
+        this.quantite = quantite;
+    }
+
+    public int getIdCommande() {
+        return idCommande;
+    }
+
+    public int getIdArticle() {
+        return idArticle;
+    }
+
+    public int getQuantite() {
+        return quantite;
+    }
+}
