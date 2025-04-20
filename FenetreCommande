@@ -24,7 +24,7 @@ public class FenetreCommande extends JPanel {
         // En haut du constructeur
         setLayout(new BorderLayout());
 
-// 🔹 Panel en haut contenant le titre + nom du client
+// Panel en haut contenant le titre ainsi que le nom du client
         JPanel headerPanel = new JPanel();
         headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
         headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -39,7 +39,7 @@ public class FenetreCommande extends JPanel {
         headerPanel.add(Box.createVerticalStrut(5));
         headerPanel.add(nomClient);
 
-// ➕ Ajoute tout en haut de la page
+// Ajoute tout en haut de la page 
         add(headerPanel, BorderLayout.NORTH);
 
         panelCommandes = new JPanel();
@@ -96,7 +96,7 @@ public class FenetreCommande extends JPanel {
             recapLabel.setEditable(false);
             recapLabel.setOpaque(false);
 
-            // 💰 Totaux
+            // totaux dans le panier
             double totalHT = PanierDAO.calculerTotalCommande(c.getIdCommande());
             double tva = totalHT * 0.20;
             double frais = 5.00;
@@ -105,7 +105,7 @@ public class FenetreCommande extends JPanel {
             JLabel totalHTLabel = new JLabel(String.format("%.2f €", totalHT), SwingConstants.CENTER);
             JLabel totalTTCLabel = new JLabel(String.format("%.2f €", totalTTC), SwingConstants.CENTER);
 
-            // ➕ Ajout à la ligne
+            // ajout d'une ligne
             ligne.add(idLabel);
             ligne.add(dateLabel);
             ligne.add(statutLabel);
