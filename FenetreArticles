@@ -52,9 +52,9 @@ public class FenetreArticles extends JPanel {
 
                 boolean ok = PanierDAO.ajouterAuPanier(client, article.getIdArticle(), quantite);
                 if (ok) {
-                    JOptionPane.showMessageDialog(this, "✅ Article ajouté au panier !");
+                    JOptionPane.showMessageDialog(this, "l'article a été ajouté au panier !");
                 } else {
-                    JOptionPane.showMessageDialog(this, "❌ Erreur lors de l'ajout au panier.");
+                    JOptionPane.showMessageDialog(this, "Erreur lors de l'ajout de l'article au panier.");
                 }
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(this, "Veuillez entrer une quantité valide.");
@@ -197,9 +197,9 @@ public class FenetreArticles extends JPanel {
                     int qte = (int) spinner.getValue();
                     boolean ok = PanierDAO.ajouterAuPanier(client, article.getIdArticle(), qte);
                     if (ok) {
-                        JOptionPane.showMessageDialog(this, "✅ Article ajouté !");
+                        JOptionPane.showMessageDialog(this, "l'article a été ajouté!");
                     } else {
-                        JOptionPane.showMessageDialog(this, "❌ Erreur d'ajout.");
+                        JOptionPane.showMessageDialog(this, "Erreur d'ajout de l'article.");
                     }
                 });
 
