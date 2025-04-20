@@ -4,6 +4,6 @@ public class Administrateur extends Utilisateur {
     }
 
     public void gererStock() {
-        // Gestion du stock
+        // On gère le stock
     }
 }
